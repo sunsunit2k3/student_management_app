@@ -3,9 +3,12 @@ import DataTable, { Column, FetchParams } from "../../components/tables/DataTabl
 import Button from "../../components/ui/button/Button";
 import submissionFileService from "../../api/submissionFileService";
 import { SubmissionFileResponseDto } from "../../types/submissionfile";
+import DeleteConfirmModal from "../../components/modals/DeleteConfirmModal";
 
 const SubmissionFilesAdmin: React.FC = () => {
   const [refreshTick, setRefreshTick] = useState(0);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<SubmissionFileResponseDto | null>(null);
 
   const columns: Column<SubmissionFileResponseDto>[] = [
     { key: "id", header: "ID", sortable: true, render: (f) => f.id },
@@ -24,8 +27,6 @@ const SubmissionFilesAdmin: React.FC = () => {
 
   const fetchData = useCallback(
     async ({ page, size, query }: FetchParams) => {
-      console.log(page, size);
-      
       const res = await submissionFileService.getAllSubmissionFiles({
         page,
         size,
@@ -42,20 +43,15 @@ const SubmissionFilesAdmin: React.FC = () => {
     [refreshTick]
   );
 
-  async function handleDelete(f: SubmissionFileResponseDto) {
-    if (!f.id) return;
-    const ok = window.confirm(
-      `Xóa file ${f.originalFileName || f.id}?`
-    );
-    if (!ok) return;
+  function openDeleteModal(f: SubmissionFileResponseDto) {
+    setSelectedFile(f);
+    setDeleteOpen(true);
+  }
 
-    try {
-      await submissionFileService.deleteSubmissionFile(f.id);
-      setRefreshTick((x) => x + 1);
-    } catch (e) {
-      console.error(e);
-      alert("Xóa thất bại");
-    }
+  async function handleDeleteFile() {
+    if (!selectedFile?.id) return;
+    await submissionFileService.deleteSubmissionFile(selectedFile.id);
+    setRefreshTick((x) => x + 1);
   }
 
   function handleDownload(f: SubmissionFileResponseDto) {
@@ -64,33 +60,55 @@ const SubmissionFilesAdmin: React.FC = () => {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-4">Submission Files (Admin)</h1>
+      <div className="mb-6 flex flex-col gap-2">
+        <p className="text-sm font-semibold uppercase tracking-wide text-indigo-500">Quản lý</p>
+        <h1 className="text-3xl font-semibold text-gray-900 dark:text-white">Submission Files (Admin)</h1>
+        <p className="text-sm text-gray-500">Quản lý các file nộp bài của sinh viên.</p>
+      </div>
 
       <DataTable<SubmissionFileResponseDto>
         columns={columns}
         fetchData={fetchData}
         initialPageSize={10}
+        emptyState={{
+          title: 'Chưa có file nộp bài',
+          description: 'Chưa có file nào được tải lên.',
+        }}
         renderActions={(f) => (
           <>
             <Button
-              size="md"
-              variant="primary"
-              className="bg-blue-600 hover:bg-blue-700"
+              size="sm"
+              variant="outline"
+              className="rounded-full px-4 py-2 text-xs font-semibold"
               onClick={() => handleDownload(f)}
             >
-              Tải
+              Tải xuống
             </Button>
-
             <Button
-              size="md"
-              variant="primary"
-              className="bg-red-600 hover:bg-red-700"
-              onClick={() => handleDelete(f)}
+              size="sm"
+              variant="danger"
+              className="rounded-full px-4 py-2 text-xs font-semibold"
+              onClick={() => openDeleteModal(f)}
             >
               Xóa
             </Button>
           </>
         )}
+      />
+
+      <DeleteConfirmModal
+        isOpen={deleteOpen}
+        entityName={selectedFile?.originalFileName || selectedFile?.id}
+        onClose={() => {
+          setDeleteOpen(false);
+          setSelectedFile(null);
+        }}
+        onConfirm={async () => {
+          await handleDeleteFile();
+          setDeleteOpen(false);
+          setSelectedFile(null);
+        }}
+        title="Xóa file"
       />
     </div>
   );

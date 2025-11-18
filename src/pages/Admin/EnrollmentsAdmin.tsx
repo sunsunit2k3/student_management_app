@@ -1,11 +1,31 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import DataTable, { Column, FetchParams } from "../../components/tables/DataTable";
 import Button from "../../components/ui/button/Button";
 import enrollmentService from "../../api/enrollmentService";
 import { EnrollmentResponseDto } from "../../types/enrollment";
+import CrudFormModal from "../../components/modals/CrudFormModal";
+import DeleteConfirmModal from "../../components/modals/DeleteConfirmModal";
+
+type EnrollmentFormValues = {
+  userId: string;
+  courseId: string;
+};
 
 const EnrollmentsAdmin: React.FC = () => {
   const [refreshTick, setRefreshTick] = useState(0);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [selectedEnrollment, setSelectedEnrollment] = useState<EnrollmentResponseDto | null>(null);
+
+  const baseFormValues = useMemo<EnrollmentFormValues>(() => ({ userId: "", courseId: "" }), []);
+  const editFormValues = useMemo<EnrollmentFormValues>(
+    () => ({
+      userId: selectedEnrollment?.userId || "",
+      courseId: selectedEnrollment?.courseId || "",
+    }),
+    [selectedEnrollment]
+  );
 
   const columns: Column<EnrollmentResponseDto>[] = [
     { key: 'id', header: 'ID', sortable: true, render: (e) => e.id },
@@ -27,7 +47,6 @@ const EnrollmentsAdmin: React.FC = () => {
   ];
 
   const fetchData = useCallback(async ({ page, size, query }: FetchParams) => {
-    // enrollmentService.getAllEnrollments returns either array or paged response
     const res = await enrollmentService.getAllEnrollments();
     const payload: any = res.data;
     let items: EnrollmentResponseDto[] = [];
@@ -40,7 +59,6 @@ const EnrollmentsAdmin: React.FC = () => {
       total = payload.totalElements || items.length;
     }
 
-    // basic client-side search
     if (query) {
       const q = query.toLowerCase();
       items = items.filter((it) =>
@@ -53,39 +71,170 @@ const EnrollmentsAdmin: React.FC = () => {
     return { items, total };
   }, [refreshTick]);
 
-  async function handleDelete(e: EnrollmentResponseDto) {
-    if (!e.id) return;
-    const ok = window.confirm(`Xóa enrollment ${e.id}?`);
-    if (!ok) return;
-    try {
-      await enrollmentService.deleteEnrollment(e.id);
-      setRefreshTick((x) => x + 1);
-    } catch (err) {
-      console.error(err);
-      alert('Xóa thất bại');
-    }
+  function openCreateModal() {
+    setSelectedEnrollment(null);
+    setCreateOpen(true);
   }
 
-  function handleEdit(e: EnrollmentResponseDto) {
-    alert(`Cập nhật enrollment ${e.id}`);
+  function openEditModal(e: EnrollmentResponseDto) {
+    setSelectedEnrollment(e);
+    setEditOpen(true);
+  }
+
+  function openDeleteModal(e: EnrollmentResponseDto) {
+    setSelectedEnrollment(e);
+    setDeleteOpen(true);
+  }
+
+  async function handleCreateEnrollment(values: EnrollmentFormValues) {
+    await enrollmentService.createEnrollment({ userId: values.userId.trim(), courseId: values.courseId.trim() });
+    setRefreshTick((x) => x + 1);
+  }
+
+  async function handleUpdateEnrollment(values: EnrollmentFormValues) {
+    if (!selectedEnrollment?.id) return;
+    await enrollmentService.updateEnrollment(selectedEnrollment.id, { id: selectedEnrollment.id });
+    setRefreshTick((x) => x + 1);
+  }
+
+  async function handleDeleteEnrollment() {
+    if (!selectedEnrollment?.id) return;
+    await enrollmentService.deleteEnrollment(selectedEnrollment.id);
+    setRefreshTick((x) => x + 1);
   }
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-semibold">Enrollments (Admin)</h1>
+      <div className="mb-6 flex flex-col gap-2">
+        <p className="text-sm font-semibold uppercase tracking-wide text-indigo-500">Quản lý</p>
+        <h1 className="text-3xl font-semibold text-gray-900 dark:text-white">Enrollments (Admin)</h1>
+        <p className="text-sm text-gray-500">Quản lý đăng ký khóa học của sinh viên.</p>
       </div>
 
       <DataTable<EnrollmentResponseDto>
         columns={columns}
         fetchData={fetchData}
         initialPageSize={10}
-        renderActions={(r) => (
+        toolbarSlot={
+          <Button
+            size="md"
+            className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30"
+            onClick={openCreateModal}
+          >
+            Tạo mới
+          </Button>
+        }
+        emptyState={{
+          title: 'Chưa có đăng ký',
+          description: 'Bấm "Tạo mới" để thêm đăng ký đầu tiên.',
+          action: (
+            <Button size="sm" onClick={openCreateModal} className="bg-indigo-600 text-white hover:bg-indigo-700">
+              Tạo ngay
+            </Button>
+          ),
+        }}
+        renderActions={(e) => (
           <>
-            <Button size="md" variant="primary" className="bg-blue-600 hover:bg-blue-700" onClick={() => handleEdit(r)}>Cập nhật</Button>
-            <Button size="md" variant="primary" className="bg-red-600 hover:bg-red-700" onClick={() => handleDelete(r)}>Xóa</Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="rounded-full px-4 py-2 text-xs font-semibold"
+              onClick={() => openEditModal(e)}
+            >
+              Chỉnh sửa
+            </Button>
+            <Button
+              size="sm"
+              variant="danger"
+              className="rounded-full px-4 py-2 text-xs font-semibold"
+              onClick={() => openDeleteModal(e)}
+            >
+              Xóa
+            </Button>
           </>
         )}
+      />
+
+      <CrudFormModal<EnrollmentFormValues>
+        isOpen={createOpen}
+        mode="create"
+        initialValues={baseFormValues}
+        onClose={() => setCreateOpen(false)}
+        onSubmit={handleCreateEnrollment}
+        description="Nhập thông tin đăng ký khóa học."
+        renderFields={({ values, handleChange }) => (
+          <div className="grid gap-4">
+            <div className="space-y-1">
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">User ID</label>
+              <input
+                value={values.userId}
+                onChange={(e) => handleChange('userId', e.target.value)}
+                className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 dark:border-white/10 dark:bg-transparent dark:text-white"
+                placeholder="UUID sinh viên"
+                required
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Course ID</label>
+              <input
+                value={values.courseId}
+                onChange={(e) => handleChange('courseId', e.target.value)}
+                className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 dark:border-white/10 dark:bg-transparent dark:text-white"
+                placeholder="UUID khóa học"
+                required
+              />
+            </div>
+          </div>
+        )}
+      />
+
+      <CrudFormModal<EnrollmentFormValues>
+        isOpen={editOpen}
+        mode="update"
+        initialValues={editFormValues}
+        onClose={() => {
+          setEditOpen(false);
+          setSelectedEnrollment(null);
+        }}
+        onSubmit={handleUpdateEnrollment}
+        description={`Cập nhật đăng ký ${selectedEnrollment?.id || ''}.`}
+        renderFields={({ values, handleChange }) => (
+          <div className="grid gap-4">
+            <div className="space-y-1">
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">User ID</label>
+              <input
+                value={values.userId}
+                onChange={(e) => handleChange('userId', e.target.value)}
+                className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 dark:border-white/10 dark:bg-transparent dark:text-white"
+                disabled
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Course ID</label>
+              <input
+                value={values.courseId}
+                onChange={(e) => handleChange('courseId', e.target.value)}
+                className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 dark:border-white/10 dark:bg-transparent dark:text-white"
+                disabled
+              />
+            </div>
+          </div>
+        )}
+      />
+
+      <DeleteConfirmModal
+        isOpen={deleteOpen}
+        entityName={selectedEnrollment?.id}
+        onClose={() => {
+          setDeleteOpen(false);
+          setSelectedEnrollment(null);
+        }}
+        onConfirm={async () => {
+          await handleDeleteEnrollment();
+          setDeleteOpen(false);
+          setSelectedEnrollment(null);
+        }}
+        title="Xóa đăng ký"
       />
     </div>
   );

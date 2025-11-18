@@ -14,3 +14,5 @@ export interface Role {
   createdAt?: string;
   updatedAt?: string; 
 }
+
+export interface RoleResponseDto extends Role {}
