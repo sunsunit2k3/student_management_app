@@ -37,7 +37,7 @@ export default function DataTable<T>(props: {
 }) {
   const { columns, fetchData, initialPageSize = 5, filters = [], className, renderActions, actionsHeader = 'Actions' } = props;
 
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
   const [size, setSize] = useState(initialPageSize);
   const [query, setQuery] = useState('');
   const [items, setItems] = useState<T[]>([]);
@@ -73,16 +73,15 @@ export default function DataTable<T>(props: {
   }, [page, size, query, fetchData, activeFilters, sortBy, sortOrder]);
   function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
     setQuery(e.target.value);
-    setPage(1);
+    setPage(0);
   }
 
   function handleFilterChange(name: string, value?: string) {
     setActiveFilters((prev) => ({ ...prev, [name]: value }));
-    setPage(1);
+    setPage(0);
   }
 
   function toggleSort(key: string) {
-    // If clicking new column, start with asc; if same, toggle; if desc -> undefined
     if (sortBy !== key) {
       setSortBy(key);
       setSortOrder('asc');
@@ -94,7 +93,7 @@ export default function DataTable<T>(props: {
     } else {
       setSortOrder('asc');
     }
-    setPage(1);
+    setPage(0);
   }
 
   return (
@@ -192,7 +191,7 @@ export default function DataTable<T>(props: {
       </div>
 
       <div className="p-4">
-        <Pagination page={page} size={size} total={total} onPageChange={(p) => setPage(p)} onSizeChange={(s) => { setSize(s); setPage(1); }} />
+        <Pagination page={page} size={size} total={total} onPageChange={(p) => setPage(p)} onSizeChange={(s) => { setSize(s); setPage(0); }} />
       </div>
     </div>
   );

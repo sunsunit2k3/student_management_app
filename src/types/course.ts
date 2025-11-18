@@ -16,7 +16,8 @@ export interface CourseResponseDto {
   id: string; // UUID
   code: string;
   name?: string | null;
-  userId?: string | null;
+  teacherId?: string | null;
+  teacherFullName?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }

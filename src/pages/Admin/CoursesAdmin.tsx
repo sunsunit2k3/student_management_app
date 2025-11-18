@@ -11,7 +11,8 @@ const CoursesAdmin: React.FC = () => {
     { key: 'id', header: 'ID', sortable: true, render: (c) => c.id },
     { key: 'code', header: 'Code', sortable: true, render: (c) => c.code },
     { key: 'name', header: 'Name', sortable: true, render: (c) => c.name || '' },
-    { key: 'userId', header: 'Owner ID', render: (c) => c.userId || '' },
+    { key: 'teacherId', header: 'Teacher ID', render: (c) => c.teacherId || '' },
+    { key: 'teacherFullName', header: 'Teacher Name', render: (c) => c.teacherFullName || '' },
     { key: 'createdAt', header: 'Created At', sortable: true, render: (c) => (c.createdAt ? new Date(c.createdAt).toLocaleString() : '') },
     { key: 'updatedAt', header: 'Updated At', sortable: true, render: (c) => (c.updatedAt ? new Date(c.updatedAt).toLocaleString() : '') },
   ];

@@ -1,4 +1,4 @@
-import { ApiResponse } from '../types/api';
+import { ApiResponse, PageResponseDto } from '../types/api';
 import { SubmissionFileResponseDto, SubmissionFileUpdateDto } from '../types/submissionfile';
 import apiService from './apiService';
 
@@ -12,8 +12,10 @@ export async function getFilesByStudentGrade(studentGradeId: string): Promise<Ap
 	return apiService.get<SubmissionFileResponseDto[]>(`${base}/student-grade/${studentGradeId}`);
 }
 
-export async function getAllSubmissionFiles(): Promise<ApiResponse<SubmissionFileResponseDto[]>> {
-    return apiService.get<SubmissionFileResponseDto[]>(`${base}`);
+export async function getAllSubmissionFiles(
+  params?: { page?: number; size?: number; role?: string; search?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' }
+): Promise<ApiResponse<PageResponseDto<SubmissionFileResponseDto>>> {
+    return apiService.get<PageResponseDto<SubmissionFileResponseDto>>(`${base}`, { params } as any);
 }
 
 export async function updateSubmissionFile(id: string, payload: SubmissionFileUpdateDto): Promise<ApiResponse<SubmissionFileResponseDto>> {
