@@ -21,20 +21,22 @@ import { useSidebar } from "../context/SidebarContext";
 import { Role } from "../types";
 import useAuthStore from "../stores/useAuthStore";
 
+// 1. Update Type Definition to use Role (string) instead of Role[]
 type NavItem = {
   name: string;
   icon: React.ReactNode;
   path?: string;
-  allowedRoles?: Role[]; 
+  allowedRoles?: string; // Changed from Role[]
   subItems?: {
     name: string;
     path: string;
     pro?: boolean;
     new?: boolean;
-    allowedRoles?: Role[];
+    allowedRoles?: string; // Changed from Role[]
   }[];
 };
 
+// 2. Update Data Structure to use single strings
 const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
@@ -45,80 +47,80 @@ const navItems: NavItem[] = [
     name: "Courses",
     icon: <CoursesIcon />,
     path: "/admin/courses",
-    allowedRoles: ["ADMIN"],
+    allowedRoles: "ADMIN",
   },
   {
     name: "Users",
     icon: <UsersIcon />,
     path: "/admin/users",
-    allowedRoles: ["ADMIN"],
+    allowedRoles: "ADMIN",
   },
   {
     name: "Roles",
     icon: <RolesIcon />,
     path: "/admin/roles",
-    allowedRoles: ["ADMIN"],
+    allowedRoles: "ADMIN",
   },
   {
     name: "Enrollments",
     icon: <EnrollmentsIcon />,
     path: "/admin/enrollments",
-    allowedRoles: ["ADMIN"],
+    allowedRoles: "ADMIN",
   },
   {
     name: "Grade Items",
     icon: <GradeItemsIcon />,
     path: "/admin/grade-items",
-    allowedRoles: ["ADMIN"],
+    allowedRoles: "ADMIN",
   },
   {
     name: "Student Grades",
     icon: <StudentGradesIcon />,
     path: "/admin/student-grades",
-    allowedRoles: ["ADMIN"],
+    allowedRoles: "ADMIN",
   },
   {
     name: "Submission Files",
     icon: <SubmissionFilesIcon />,
     path: "/admin/submission-files",
-    allowedRoles: ["ADMIN"],
+    allowedRoles: "ADMIN",
   },
   {
     name: "Classes",
     icon: <ClassesIcon />,
     path: "/student/classes",
-    allowedRoles: ["STUDENT"],
+    allowedRoles: "STUDENT",
   },
   {
     name: "Subjects",
     icon: <SubjectsIcon />,
     path: "/student/subjects",
-    allowedRoles: ["STUDENT"],
+    allowedRoles: "STUDENT",
   },
   {
     name: "Assignments",
     icon: <AssignmentsIcon />,
     path: "/student/assignments",
-    allowedRoles: ["STUDENT"],
+    allowedRoles: "STUDENT",
   },
   // Teacher top-level items
   {
     name: "Classes",
     icon: <TeacherClassesIcon />,
     path: "/teacher/classes",
-    allowedRoles: ["TEACHER"],
+    allowedRoles: "TEACHER",
   },
   {
     name: "Subjects",
     icon: <TeacherSubjectsIcon />,
     path: "/teacher/subjects",
-    allowedRoles: ["TEACHER"],
+    allowedRoles: "TEACHER",
   },
   {
     name: "Assignments",
     icon: <TeacherAssignmentsIcon />,
     path: "/teacher/assignments",
-    allowedRoles: ["TEACHER"],
+    allowedRoles: "TEACHER",
   },
 ];
  
@@ -126,7 +128,7 @@ const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
   const { user } = useAuthStore();
-  const role = user?.roleName as Role | undefined;
+  const role = user?.roleName as string | undefined;
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";
@@ -137,23 +139,23 @@ const AppSidebar: React.FC = () => {
   );
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // const isActive = (path: string) => location.pathname === path;
   const isActive = useCallback(
     (path: string) => location.pathname === path,
     [location.pathname]
   );
 
+  // 3. Update Permission Logic
   const canView = useCallback(
-    (currentRole: Role | undefined, allowed?: Role[]) => {
-      if (!allowed || allowed.length === 0) return true;
+    (currentRole: string | undefined, allowed?: string) => {
+      if (!allowed) return true;
       if (!currentRole) return false;
-      return allowed.includes(currentRole);
+      return currentRole === allowed;
     },
     []
   );
 
   const filterMenuItems = useCallback(
-    (items: NavItem[], currentRole: Role | undefined): NavItem[] => {
+    (items: NavItem[], currentRole: string | undefined): NavItem[] => {
       return items
         .filter((item) => canView(currentRole, item.allowedRoles))
         .map((item) => {
@@ -172,42 +174,44 @@ const AppSidebar: React.FC = () => {
 
   const filteredMainItems = useMemo(() => filterMenuItems(navItems, role), [role, filterMenuItems]);
 
-  // Group filtered items by target role and common items
+  // 4. Update Grouping Logic (Exact match instead of includes)
   const commonItems = useMemo(
-    () => filteredMainItems.filter((it) => !it.allowedRoles || it.allowedRoles.length === 0),
+    () => filteredMainItems.filter((it) => !it.allowedRoles),
     [filteredMainItems]
   );
+
   const adminItems = useMemo(
     () =>
       filteredMainItems.filter(
         (it) =>
-          (it.allowedRoles && it.allowedRoles.includes("ADMIN")) ||
-          (it.subItems && it.subItems.some((si) => si.allowedRoles && si.allowedRoles.includes("ADMIN")))
+          (it.allowedRoles === "ADMIN") ||
+          (it.subItems && it.subItems.some((si) => si.allowedRoles === "ADMIN"))
       ),
     [filteredMainItems]
   );
+
   const teacherItems = useMemo(
     () =>
       filteredMainItems.filter(
         (it) =>
-          (it.allowedRoles && it.allowedRoles.includes("TEACHER")) ||
-          (it.subItems && it.subItems.some((si) => si.allowedRoles && si.allowedRoles.includes("TEACHER")))
+          (it.allowedRoles === "TEACHER") ||
+          (it.subItems && it.subItems.some((si) => si.allowedRoles === "TEACHER"))
       ),
     [filteredMainItems]
   );
+
   const studentItems = useMemo(
     () =>
       filteredMainItems.filter(
         (it) =>
-          (it.allowedRoles && it.allowedRoles.includes("STUDENT")) ||
-          (it.subItems && it.subItems.some((si) => si.allowedRoles && si.allowedRoles.includes("STUDENT")))
+          (it.allowedRoles === "STUDENT") ||
+          (it.subItems && it.subItems.some((si) => si.allowedRoles === "STUDENT"))
       ),
     [filteredMainItems]
   );
 
   useEffect(() => {
     let submenuMatched = false;
-    // Only check main menu items for active sub-routes
     filteredMainItems.forEach((nav, index) => {
       if (nav.subItems) {
         nav.subItems.forEach((subItem) => {

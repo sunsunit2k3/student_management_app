@@ -6,7 +6,6 @@ export interface CourseCreateDto {
 }
 
 export interface CourseUpdateDto {
-  id: string; // UUID
   code?: string;
   name?: string;
   userId?: string | null;
@@ -16,7 +15,7 @@ export interface CourseResponseDto {
   id: string; // UUID
   code: string;
   name?: string | null;
-  teacherName?: string | null;
+  teacherName?: string ;
   teacherId?: string | null;
   createdAt?: string;
   updatedAt?: string;

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { AuthUserDto } from '../types';
-import { login as loginApi, logout as logoutApi, getCurrentUser, refreshToken as refreshTokenApi } from '../api/authService';
+import { login as loginApi, logout as logoutApi, getCurrentUser } from '../api/authService';
 
 interface AuthState {
   user: AuthUserDto | null;
@@ -18,9 +18,7 @@ interface AuthState {
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
-  refreshAccessToken: () => Promise<boolean>;
 }
-
 
 const useAuthStore = create<AuthState>()(
   persist(
@@ -33,11 +31,13 @@ const useAuthStore = create<AuthState>()(
       loginError: undefined,
 
       setUser: (user) => set({ user, isAuthenticated: !!user }),
+      
       setTokens: (accessToken, refreshToken) =>
-        set({
+        set((state) => ({
           accessToken,
-          refreshToken: refreshToken || get().refreshToken,
-        }),
+          refreshToken: refreshToken || state.refreshToken,
+        })),
+
       clearUser: () =>
         set({
           user: null,
@@ -75,12 +75,13 @@ const useAuthStore = create<AuthState>()(
         try {
           const { accessToken } = get();
           if (accessToken) {
-            await logoutApi({ token: accessToken } );
+            await logoutApi({ token: accessToken });
           }
         } catch (error) {
           console.error('Logout error:', error);
         } finally {
           get().clearUser();
+          localStorage.removeItem('auth-storage');
         }
       },
 
@@ -93,42 +94,22 @@ const useAuthStore = create<AuthState>()(
             return;
           }
 
+          // Gọi API lấy user info.
+          // Nếu token hết hạn, Axios Interceptor sẽ tự động refresh và retry request này.
+          // Chúng ta không cần logic refresh thủ công ở đây nữa.
           const meRes = await getCurrentUser();
+          
           if (meRes.code === 0 && meRes.data) {
             set({ user: meRes.data, isAuthenticated: true });
           } else {
-            const refreshed = await get().refreshAccessToken();
-            if (refreshed) {
-              await get().checkAuth(); // retry fetching user
-            } else {
-              get().clearUser();
-            }
+            // Token hợp lệ nhưng server trả lỗi (VD: user bị lock)
+            get().clearUser();
           }
-        } catch {
+        } catch (error) {
+          // Nếu cả refresh token cũng lỗi thì axios reject -> vào đây -> logout
           get().clearUser();
         } finally {
           set({ isChecking: false });
-        }
-      },
-
-      refreshAccessToken: async () => {
-        try {
-          const accessToken = get().accessToken;
-          if (!accessToken) return false;
-
-          const refreshToken = get().refreshToken;
-          if (!refreshToken) return false;
-          const response = await refreshTokenApi({ token: refreshToken });
-          if (response.code === 0 && response.data) {
-            get().setTokens(response.data.token);
-            return true;
-          } else {
-            get().clearUser();
-            return false;
-          }
-        } catch {
-          get().clearUser();
-          return false;
         }
       },
     }),
@@ -144,26 +125,26 @@ const useAuthStore = create<AuthState>()(
   )
 );
 
+// --- Event Listeners: Đồng bộ State với Axios Service ---
 if (typeof window !== 'undefined') {
   const w = window as any;
   if (!w.__auth_store_events_installed) {
+    
+    // 1. Khi Axios refresh thành công: Cập nhật state mới vào Zustand
     window.addEventListener('auth:token-refreshed', (e: Event) => {
       try {
         const detail = (e as CustomEvent)?.detail;
         if (detail && detail.accessToken) {
-          useAuthStore.getState().setTokens(detail.accessToken);
+          useAuthStore.getState().setTokens(detail.accessToken, detail.refreshToken);
         }
       } catch (err) {
-        // ignore
+        console.error(err);
       }
     });
 
-    window.addEventListener('auth:refresh-failed', (_e: Event) => {
-      try {
-        useAuthStore.getState().clearUser();
-      } catch (err) {
-        // ignore
-      }
+    // 2. Khi Axios refresh thất bại: Xóa user khỏi Zustand
+    window.addEventListener('auth:refresh-failed', () => {
+      useAuthStore.getState().clearUser();
     });
 
     w.__auth_store_events_installed = true;
@@ -171,4 +152,3 @@ if (typeof window !== 'undefined') {
 }
 
 export default useAuthStore;
-

@@ -6,7 +6,7 @@ export interface AuthUserDto {
   email?: string | null;
   fistName?: string | null;
   lastName?: string | null;
-  roleName?: string;
+  roleName?: string | null;
   createdAt?: string;
 }
 

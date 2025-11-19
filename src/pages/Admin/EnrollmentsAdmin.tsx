@@ -141,7 +141,7 @@ const EnrollmentsAdmin: React.FC = () => {
               className="rounded-full px-4 py-2 text-xs font-semibold"
               onClick={() => openEditModal(e)}
             >
-              Chỉnh sửa
+              Sửa
             </Button>
             <Button
               size="sm"

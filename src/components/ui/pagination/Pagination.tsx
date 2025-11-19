@@ -1,5 +1,5 @@
 export default function Pagination(props: {
-  page: number;        // zero-based
+  page: number;
   size: number;
   total: number;
   onPageChange: (p: number) => void;
@@ -7,7 +7,7 @@ export default function Pagination(props: {
 }) {
   const { page, size, total, onPageChange, onSizeChange } = props;
 
-  const totalPages = Math.max(1, Math.ceil(total / size)); // totalPages tính theo 1-based
+  const totalPages = Math.max(1, Math.ceil(total / size));
 
   function prev() {
     onPageChange(Math.max(0, page - 1));
@@ -22,19 +22,20 @@ export default function Pagination(props: {
       <div className="flex items-center gap-2">
         <button
           onClick={prev}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-base hover:bg-gray-50 disabled:opacity-50"
+          className="px-3 py-2 border border-gray-300 rounded-lg text-base text-[var(--color-gray-700)] dark:text-gray-200 hover:bg-gray-50 disabled:opacity-50"
           disabled={page <= 0}
         >
           Prev
         </button>
 
-        <span className="text-base">
+        {/* MÀU CHỮ ĐÃ CHỈNH */}
+        <span className="text-base text-[var(--color-gray-700)] dark:text-gray-200">
           Page {page + 1} / {totalPages}
         </span>
 
         <button
           onClick={next}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-base hover:bg-gray-50 disabled:opacity-50"
+          className="px-3 py-2 border border-gray-300 rounded-lg text-base text-[var(--color-gray-700)] dark:text-gray-200 hover:bg-gray-50 disabled:opacity-50"
           disabled={page >= totalPages - 1}
         >
           Next
@@ -42,11 +43,11 @@ export default function Pagination(props: {
       </div>
 
       <div className="flex items-center gap-2">
-        <label className="text-base">Show</label>
+        <label className="text-base text-[var(--color-gray-700)] dark:text-gray-200">Show</label>
         <select
           value={size}
           onChange={(e) => onSizeChange && onSizeChange(Number(e.target.value))}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-base bg-white dark:bg-transparent"
+          className="px-3 py-2 border border-gray-300 rounded-lg text-base bg-white dark:bg-transparent text-[var(--color-gray-700)] dark:text-gray-200"
         >
           {[5, 10, 20, 50].map((s) => (
             <option key={s} value={s}>

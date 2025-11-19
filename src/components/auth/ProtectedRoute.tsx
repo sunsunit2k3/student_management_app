@@ -2,11 +2,10 @@ import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import useAuthStore from '../../stores/useAuthStore';
 import LoadingOverlay from '../ui/LoadingOverlay';
-import type { Role } from '../../types';
 
 interface Props {
   children: React.ReactNode;
-  allowedRoles?: Role[];
+  allowedRoles?: String;
 }
 
 export default function ProtectedRoute({ children, allowedRoles }: Props) {
@@ -16,18 +15,19 @@ export default function ProtectedRoute({ children, allowedRoles }: Props) {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      checkAuth().catch(console.error);
+      checkAuth();
     }
   }, [isAuthenticated, checkAuth]);
 
   useEffect(() => {
     if (!isChecking) {
       if (!isAuthenticated) {
-        // redirect nếu chưa login
         navigate('/signin', { state: { from: location }, replace: true });
       } else if (allowedRoles && user) {
-        // redirect nếu role không phù hợp
-        const hasAccess = allowedRoles.includes(user.roleName as Role);
+        const hasAccess = user.roleName 
+          ? allowedRoles.includes(user.roleName) 
+          : false;
+
         if (!hasAccess) {
           navigate('/not-authorized', { replace: true });
         }
@@ -36,6 +36,8 @@ export default function ProtectedRoute({ children, allowedRoles }: Props) {
   }, [isChecking, isAuthenticated, user, allowedRoles, navigate, location]);
 
   if (isChecking) return <LoadingOverlay />;
+
   if (isAuthenticated && user) return <>{children}</>;
-  return null; // ngăn render trước khi check xong
+
+  return null;
 }
