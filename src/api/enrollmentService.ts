@@ -1,3 +1,4 @@
+import { UserResponseDto } from '../types';
 import { ApiResponse } from '../types/api';
 import { EnrollmentCreateDto, EnrollmentResponseDto, EnrollmentUpdateDto } from '../types/enrollment';
 import apiService from './apiService';
@@ -8,8 +9,8 @@ export async function createEnrollment(payload: EnrollmentCreateDto): Promise<Ap
 	return apiService.post<EnrollmentResponseDto>(base, payload);
 }
 
-export async function getEnrollmentsByCourse(courseId: string): Promise<ApiResponse<EnrollmentResponseDto[]>> {
-	return apiService.get<EnrollmentResponseDto[]>(`${base}/course/${courseId}`);
+export async function getEnrollmentsByCourse(courseId: string): Promise<ApiResponse<UserResponseDto[]>> {
+	return apiService.get<UserResponseDto[]>(`${base}/course/${courseId}`);
 }
 
 export async function getEnrollmentsByUser(userId: string): Promise<ApiResponse<EnrollmentResponseDto[]>> {

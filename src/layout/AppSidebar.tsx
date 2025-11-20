@@ -16,9 +16,8 @@ import {
   SubmissionFilesIcon,
   UsersIcon,
 } from "../icons";
-import { ClassesIcon, SubjectsIcon, AssignmentsIcon, TeacherClassesIcon, TeacherSubjectsIcon, TeacherAssignmentsIcon } from "../icons";
+import { ClassesIcon, AssignmentsIcon, TeacherClassesIcon, TeacherAssignmentsIcon } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
-import { Role } from "../types";
 import useAuthStore from "../stores/useAuthStore";
 
 // 1. Update Type Definition to use Role (string) instead of Role[]
@@ -92,12 +91,6 @@ const navItems: NavItem[] = [
     allowedRoles: "STUDENT",
   },
   {
-    name: "Subjects",
-    icon: <SubjectsIcon />,
-    path: "/student/subjects",
-    allowedRoles: "STUDENT",
-  },
-  {
     name: "Assignments",
     icon: <AssignmentsIcon />,
     path: "/student/assignments",
@@ -108,12 +101,6 @@ const navItems: NavItem[] = [
     name: "Classes",
     icon: <TeacherClassesIcon />,
     path: "/teacher/classes",
-    allowedRoles: "TEACHER",
-  },
-  {
-    name: "Subjects",
-    icon: <TeacherSubjectsIcon />,
-    path: "/teacher/subjects",
     allowedRoles: "TEACHER",
   },
   {

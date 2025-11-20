@@ -62,10 +62,8 @@ import StudentGradesIcon from "./admin/StudentGradesIcon";
 import SubmissionFilesIcon from "./admin/SubmissionFilesIcon";
 import UsersIcon from "./admin/UsersIcon";
 import ClassesIcon from "./student/ClassesIcon";
-import SubjectsIcon from "./student/SubjectsIcon";
 import AssignmentsIcon from "./student/AssignmentsIcon";
 import TeacherClassesIcon from "./teacher/TeacherClassesIcon";
-import TeacherSubjectsIcon from "./teacher/TeacherSubjectsIcon";
 import TeacherAssignmentsIcon from "./teacher/TeacherAssignmentsIcon";
 
 export {
@@ -133,9 +131,7 @@ export {
   SubmissionFilesIcon,
   UsersIcon,
   ClassesIcon,
-  SubjectsIcon,
   AssignmentsIcon,
   TeacherClassesIcon,
-  TeacherSubjectsIcon,
   TeacherAssignmentsIcon,
 };

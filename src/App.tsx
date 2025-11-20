@@ -12,10 +12,8 @@ import AdminDashboard from "./pages/Dashboard/AdminDashboard";
 import TeacherDashboard from "./pages/Dashboard/TeacherDashboard";
 import StudentDashboard from "./pages/Dashboard/StudentDashboard";
 import StudentClasses from "./pages/Student/StudentClasses";
-import StudentSubjects from "./pages/Student/StudentSubjects";
 import StudentAssignments from "./pages/Student/StudentAssignments";
 import TeacherClasses from "./pages/Teacher/TeacherClasses";
-import TeacherSubjects from "./pages/Teacher/TeacherSubjects";
 import TeacherAssignments from "./pages/Teacher/TeacherAssignments";
 import CoursesAdmin from "./pages/Admin/CoursesAdmin";
 import UsersAdmin from "./pages/Admin/UsersAdmin";
@@ -27,6 +25,7 @@ import SubmissionFilesAdmin from "./pages/Admin/SubmissionFilesAdmin";
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import useAuthStore from './stores/useAuthStore';
 import { ToastContainer } from "react-toastify";
+import ClassDetail from "./pages/Student/ClassDetail";
 
 export default function App() {
   const { user } = useAuthStore();
@@ -55,7 +54,6 @@ export default function App() {
           <>
             <Route index element={<TeacherDashboard />} />
             <Route path="teacher/classes" element={<TeacherClasses />} />
-            <Route path="teacher/subjects" element={<TeacherSubjects />} />
             <Route path="teacher/assignments" element={<TeacherAssignments />} />
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/calendar" element={<Calendar />} />
@@ -69,8 +67,8 @@ export default function App() {
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="student/classes" element={<StudentClasses />} />
-            <Route path="student/subjects" element={<StudentSubjects />} />
             <Route path="student/assignments" element={<StudentAssignments />} />
+            <Route path="student/detail/:id" element={<ClassDetail />} />
           </>
         );
 

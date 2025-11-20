@@ -1,7 +1,7 @@
 
 
 export interface AuthUserDto {
-  id: number;
+  id: string;
   username: string;
   email?: string | null;
   fistName?: string | null;
