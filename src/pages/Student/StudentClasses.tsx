@@ -33,23 +33,17 @@ const StudentClasses: React.FC = () => {
       
       try {
         setLoading(true);
-        // 1. Lấy danh sách enrollment trước
         const response = await getEnrollmentsByUser(user.id);
         
         if (isSuccessResponse(response) && response.data) {
           const rawEnrollments = response.data;
-
-          // 2. Gọi API lấy chi tiết Course cho TỪNG enrollment để lấy teacherName
-          // Sử dụng Promise.all để gọi song song (tối ưu hiệu năng hơn gọi tuần tự)
           const enrichedData = await Promise.all(
             rawEnrollments.map(async (enrollment) => {
               try {
                 if (!enrollment.courseId) return enrollment;
-
                 const courseRes = await getCourseById(enrollment.courseId);
                 
                 if (isSuccessResponse(courseRes) && courseRes.data) {
-                  // Gộp teacherName vào object enrollment
                   return {
                     ...enrollment,
                     teacherName: courseRes.data.teacherName || "Chưa cập nhật"
@@ -58,7 +52,7 @@ const StudentClasses: React.FC = () => {
               } catch (err) {
                 console.warn(`Failed to fetch details for course ${enrollment.courseId}`, err);
               }
-              return enrollment; // Trả về data gốc nếu lỗi lấy course details
+              return enrollment; 
             })
           );
 
@@ -75,20 +69,16 @@ const StudentClasses: React.FC = () => {
     fetchEnrollmentsAndCourseDetails();
   }, [user?.id]);
 
-  // Reset số lượng hiển thị khi tìm kiếm thay đổi
   useEffect(() => {
     setVisibleCount(10);
   }, [searchTerm]);
 
-  // Lọc khóa học theo tên
   const filteredEnrollments = enrollments.filter(item => 
     item.courseName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Cắt danh sách để hiển thị theo visibleCount
   const displayedEnrollments = filteredEnrollments.slice(0, visibleCount);
 
-  // Hàm lấy màu gradient ngẫu nhiên
   const getGradientClass = (id: string) => {
     const gradients = [
       "from-blue-500 to-cyan-400",
@@ -100,13 +90,11 @@ const StudentClasses: React.FC = () => {
       "from-fuchsia-600 to-purple-500",
       "from-sky-500 to-indigo-500",
     ];
-    // Fallback nếu id null/undefined
     const safeId = id || "default"; 
     const index = safeId.charCodeAt(0) % gradients.length;
     return gradients[index];
   };
 
-  // Helper format ngày
   const formatDate = (dateString?: string) => {
     if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString('vi-VN', {

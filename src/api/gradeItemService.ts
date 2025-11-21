@@ -17,8 +17,14 @@ export async function getGradeItemsByCourse(courseId: string): Promise<ApiRespon
 }
 
 export async function getAllGradeItems(): Promise<ApiResponse<GradeItemResponseDto[]>> {
-    return apiService.get<GradeItemResponseDto[]>(`${base}`);
+	return apiService.get<GradeItemResponseDto[]>(`${base}`);
 }
+export async function getGradeItemByStudentId(
+	studentId: string
+): Promise<ApiResponse<GradeItemResponseDto[]>> {
+	return apiService.get<GradeItemResponseDto[]>(`${base}/student/${studentId}`);
+}
+
 
 export async function updateGradeItem(id: string, payload: GradeItemUpdateDto): Promise<ApiResponse<GradeItemResponseDto>> {
 	return apiService.put<GradeItemResponseDto>(`${base}/${id}`, payload);

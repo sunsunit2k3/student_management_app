@@ -11,6 +11,11 @@ export async function createStudentGrade(payload: StudentGradeCreateDto): Promis
 export async function getGradesByEnrollment(enrollmentId: string): Promise<ApiResponse<StudentGradeResponseDto[]>> {
 	return apiService.get<StudentGradeResponseDto[]>(`${base}/enrollment/${enrollmentId}`);
 }
+
+export async function getStudentGradesByStudentId(studentId: string): Promise<ApiResponse<StudentGradeResponseDto[]>> {
+	return apiService.get<StudentGradeResponseDto[]>(`${base}/student/${studentId}`);
+}
+
 export async function getAllGrades(
 	params?: { page?: number; size?: number })
 	: Promise<ApiResponse<PageResponseDto<StudentGradeResponseDto>>> {

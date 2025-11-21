@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router'; // Sửa lại import chuẩn
+import { useParams, Link } from 'react-router'; 
 import { 
   ArrowLeft, Users, BookOpen, GraduationCap, Mail, Search,
   MoreVertical, Calendar, Award, FileText, Clock, Percent, 
@@ -7,9 +7,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-// --- API SERVICES ---
 import { getCourseById } from '../../api/coursesService';
-import { getEnrollmentsByCourse, getEnrollmentsByUser } from '../../api/enrollmentService'; // Import thêm getEnrollmentsByUser
+import { getEnrollmentsByCourse, getEnrollmentsByUser } from '../../api/enrollmentService';
 import { getGradeItemsByCourse } from '../../api/gradeItemService'; 
 import { uploadFile } from '../../api/submissionFileService';
 import { 
@@ -18,11 +17,9 @@ import {
     updateStudentGrade 
 } from '../../api/studentGradeService';
 
-// --- TYPES ---
 import { CourseResponseDto } from '../../types/course';
 import { GradeItemResponseDto } from '../../types/gradeitem';
 import { StudentGradeResponseDto } from '../../types/studentgrade';
-// Import UserResponseDto mới
 import { UserResponseDto } from '../../types/user'; 
 import useAuthStore from '../../stores/useAuthStore';
 
@@ -192,7 +189,6 @@ const ClassDetail: React.FC = () => {
     getStudentEmail(s).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // --- RENDER MODAL (Giữ nguyên logic UI, chỉ render khi selectedItem có data) ---
   const renderDetailModal = () => {
     if (!selectedItem) return null;
 

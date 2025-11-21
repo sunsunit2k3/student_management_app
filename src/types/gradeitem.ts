@@ -1,14 +1,13 @@
-// Grade item table
 export interface GradeItemCreateDto {
-  courseId: string; // UUID
+  courseId: string; 
   name: string;
   description?: string | null;
-  dueDate?: string | null; // ISO datetime
-  weight?: number; // decimal
+  dueDate?: string | null; 
+  weight?: number;
 }
 
 export interface GradeItemUpdateDto {
-  id: string; // UUID
+  id: string; 
   name?: string;
   description?: string | null;
   dueDate?: string | null;
@@ -16,7 +15,7 @@ export interface GradeItemUpdateDto {
 }
 
 export interface GradeItemResponseDto {
-  id: string; // UUID
+  id: string; 
   courseId: string;
   name: string;
   description?: string | null;
