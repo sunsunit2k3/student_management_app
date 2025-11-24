@@ -103,12 +103,6 @@ const navItems: NavItem[] = [
     path: "/teacher/classes",
     allowedRoles: "TEACHER",
   },
-  {
-    name: "Assignments",
-    icon: <TeacherAssignmentsIcon />,
-    path: "/teacher/assignments",
-    allowedRoles: "TEACHER",
-  },
 ];
  
 const AppSidebar: React.FC = () => {

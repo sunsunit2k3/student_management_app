@@ -177,7 +177,8 @@ const CoursesAdmin: React.FC = () => {
   ];
 
   const fetchData = useCallback(async ({ page, size }: FetchParams) => {
-    const apiPage = Math.max(0, page - 1);
+    // Treat `page` as 0-based from the pagination component
+    const apiPage = Math.max(0, page);
     const res = await getCourses({ page: apiPage, size });
     const list = res.data;
     const items = list?.content || [];
@@ -283,11 +284,11 @@ const CoursesAdmin: React.FC = () => {
         columns={columns}
         fetchData={fetchData}
         initialPageSize={10}
-        toolbarSlot={<Button size="sm" onClick={openCreateModal}>Tạo mới</Button>}
+        toolbarSlot={<Button size="md" variant="success" onClick={openCreateModal}>Tạo mới</Button>}
         emptyState={{
           title: 'Chưa có khóa học',
           description: 'Bấm “+ Khóa học” để tạo bản ghi đầu tiên.',
-          action: (<Button size="sm" onClick={openCreateModal} >Tạo ngay</Button>),
+          action: (<Button size="md" variant="success" onClick={openCreateModal}>Tạo ngay</Button>),
         }}
         renderActions={(c) => (
           <>

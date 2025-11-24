@@ -1,19 +1,19 @@
 // Submission file table
 export interface SubmissionFileCreateDto {
-  studentGradeId: string; // UUID
+  studentGradeId: string; 
   filePath: string;
   originalFileName?: string;
   fileSize?: number;
 }
 
 export interface SubmissionFileUpdateDto {
-  id: string; // UUID
+  id: string; 
   filePath?: string;
   originalFileName?: string;
 }
 
 export interface SubmissionFileResponseDto {
-  id: string; // UUID
+  id: string; 
   studentGradeId: string;
   filePath: string;
   originalFileName?: string | null;

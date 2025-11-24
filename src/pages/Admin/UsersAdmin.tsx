@@ -63,7 +63,8 @@ const UsersAdmin: React.FC = () => {
   ];
 
   const fetchData = useCallback(async ({ page, size, query, filters }: FetchParams) => {
-    const apiPage = Math.max(0, page - 1);
+    // Treat `page` as 0-based from the pagination component
+    const apiPage = Math.max(0, page);
     const params: any = { page: apiPage, size };
     
     if (filters?.role) params.role = filters.role;
@@ -71,8 +72,6 @@ const UsersAdmin: React.FC = () => {
     if (query) params.search = query;
 
     const res = await userService.getAllUsers(params);
-    console.log(res);
-    
     const list = res.data;
 
     let items: UserResponseDto[] = list?.content || [];
@@ -162,7 +161,7 @@ const UsersAdmin: React.FC = () => {
         toolbarSlot={
           <Button
             size="md"
-            className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30"
+            variant="success"
             onClick={openCreateModal}
           >
             Tạo mới
@@ -172,7 +171,7 @@ const UsersAdmin: React.FC = () => {
           title: 'Chưa có người dùng',
           description: 'Bấm "Tạo mới" để thêm người dùng đầu tiên.',
           action: (
-            <Button size="sm" onClick={openCreateModal} className="bg-indigo-600 text-white hover:bg-indigo-700">
+            <Button size="md" variant="success" onClick={openCreateModal}>
               Tạo ngay
             </Button>
           ),

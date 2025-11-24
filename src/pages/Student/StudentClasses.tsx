@@ -218,7 +218,6 @@ const StudentClasses: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Action Footer */}
                     <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700">
                       <Link 
                         to={`/student/detail/${enrollment.courseId}`} 

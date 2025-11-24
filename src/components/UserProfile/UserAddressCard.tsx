@@ -10,7 +10,6 @@ export default function UserAddressCard() {
   const user = useAuthStore((s) => s.user);
   const handleSave = () => {
     // Handle save logic here
-    console.log("Saving changes...");
     closeModal();
   };
   return (

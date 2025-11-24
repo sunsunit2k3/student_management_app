@@ -9,13 +9,13 @@ export async function createCourse(payload: CourseCreateDto): Promise<ApiRespons
 }
 
 export async function getCourses(
-  params?: { page?: number; size?: number}
+  params?: { page?: number; size?: number, search?: string, teacherId?: string }
 ): Promise<ApiResponse<PageResponseDto<CourseResponseDto>>> {
 	return apiService.get<PageResponseDto<CourseResponseDto>>(base, { params } as any);
 }
 
-export async function getCourseById(courseId: string): Promise<ApiResponse<CourseResponseDto>> {
-	return apiService.get<CourseResponseDto>(`${base}/${courseId}`);
+export async function getCourseById(courseId: string, params?: { teacherId?: string }): Promise<ApiResponse<CourseResponseDto>> {
+	return apiService.get<CourseResponseDto>(`${base}/${courseId}`, { params } as any);
 }
 
 export async function updateCourse(courseId: string, payload: CourseUpdateDto): Promise<ApiResponse<CourseResponseDto>> {

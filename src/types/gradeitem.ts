@@ -7,7 +7,6 @@ export interface GradeItemCreateDto {
 }
 
 export interface GradeItemUpdateDto {
-  id: string; 
   name?: string;
   description?: string | null;
   dueDate?: string | null;
@@ -23,4 +22,12 @@ export interface GradeItemResponseDto {
   weight?: number;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface SubmissionStatusDto {
+  gradeItemId: string;
+  gradeItemName?: string | null;
+  submitted?: number | null;
+  notSubmitted?: number | null;
+  totalStudents?: number | null;
 }

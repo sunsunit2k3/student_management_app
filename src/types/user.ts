@@ -5,11 +5,11 @@ export interface UserCreateDto {
   email: string;
   username: string;
   password: string;
-  roleName: string; // UUID of role
+  roleName: string; 
 }
 
 export interface UserUpdateDto {
-  id: string; // UUID
+  id: string; 
   firstName?: string | null;
   lastName?: string | null;
   email?: string | null;
@@ -18,7 +18,7 @@ export interface UserUpdateDto {
 }
 
 export interface UserResponseDto {
-  id: string; // UUID
+  id: string; 
   firstName?: string | null;
   lastName?: string | null;
   email?: string | null;

@@ -4,7 +4,6 @@ import SignUp from "./pages/AuthPages/SignUp";
 import NotFound from "./pages/OtherPage/NotFound";
 import NotAuthorized from "./pages/OtherPage/NotAuthorized";
 import UserProfiles from "./pages/UserProfiles";
-import Calendar from "./pages/Calendar";
 
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
@@ -14,7 +13,6 @@ import StudentDashboard from "./pages/Dashboard/StudentDashboard";
 import StudentClasses from "./pages/Student/StudentClasses";
 import StudentAssignments from "./pages/Student/StudentAssignments";
 import TeacherClasses from "./pages/Teacher/TeacherClasses";
-import TeacherAssignments from "./pages/Teacher/TeacherAssignments";
 import CoursesAdmin from "./pages/Admin/CoursesAdmin";
 import UsersAdmin from "./pages/Admin/UsersAdmin";
 import RolesAdmin from "./pages/Admin/RolesAdmin";
@@ -26,6 +24,8 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import useAuthStore from './stores/useAuthStore';
 import { ToastContainer } from "react-toastify";
 import ClassDetail from "./pages/Student/ClassDetail";
+import TeacherClassDetail from "./pages/Teacher/TeacherClassDetail";
+import GradeItemSubmissions from "./pages/Teacher/GradeItemSubmissions";
 
 export default function App() {
   const { user } = useAuthStore();
@@ -54,9 +54,9 @@ export default function App() {
           <>
             <Route index element={<TeacherDashboard />} />
             <Route path="teacher/classes" element={<TeacherClasses />} />
-            <Route path="teacher/assignments" element={<TeacherAssignments />} />
+            <Route path="teacher/class-detail/:id" element={<TeacherClassDetail />} />
+            <Route path="teacher/grade-item/:id/submissions" element={<GradeItemSubmissions />} />
             <Route path="/profile" element={<UserProfiles />} />
-            <Route path="/calendar" element={<Calendar />} />
           </>
         );
 
@@ -65,7 +65,6 @@ export default function App() {
           <>
             <Route index element={<StudentDashboard />} />
             <Route path="/profile" element={<UserProfiles />} />
-            <Route path="/calendar" element={<Calendar />} />
             <Route path="student/classes" element={<StudentClasses />} />
             <Route path="student/assignments" element={<StudentAssignments />} />
             <Route path="student/detail/:id" element={<ClassDetail />} />

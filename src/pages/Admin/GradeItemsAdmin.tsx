@@ -40,7 +40,7 @@ const GradeItemsAdmin: React.FC = () => {
     { key: 'dueDate', header: 'Due Date', render: (g) => (g.dueDate ? new Date(g.dueDate).toLocaleString() : '-') },
   ];
 
-  const fetchData = useCallback(async ({ page, size, query }: FetchParams) => {
+  const fetchData = useCallback(async ({ page = 0, size = 10, query, sortBy, sortOrder }: FetchParams) => {
     const res = await gradeItemService.getAllGradeItems();
     const payload: any = res.data;
     let items: GradeItemResponseDto[] = [];
@@ -56,10 +56,33 @@ const GradeItemsAdmin: React.FC = () => {
     if (query) {
       const q = query.toLowerCase();
       items = items.filter((it) => (it.name || '').toLowerCase().includes(q));
-      total = items.length;
     }
 
-    return { items, total };
+    if (sortBy) {
+      const direction = sortOrder === 'desc' ? -1 : 1;
+      items = [...items].sort((a, b) => {
+        const getValue = (record: GradeItemResponseDto) => {
+          if (sortBy === 'id') return record.id ?? '';
+          if (sortBy === 'name') return record.name ?? '';
+          if (sortBy === 'weight') return record.weight ?? 0;
+          if (sortBy === 'dueDate') return record.dueDate ?? '';
+          return '';
+        };
+        const aVal = getValue(a);
+        const bVal = getValue(b);
+        if (aVal < bVal) return -1 * direction;
+        if (aVal > bVal) return 1 * direction;
+        return 0;
+      });
+    }
+
+    total = items.length;
+    const safePage = Math.max(0, page);
+    const safeSize = Math.max(1, size);
+    const start = safePage * safeSize;
+    const paged = items.slice(start, start + safeSize);
+
+    return { items: paged, total };
   }, [refreshTick]);
 
   function openCreateModal() {
@@ -121,7 +144,7 @@ const GradeItemsAdmin: React.FC = () => {
         toolbarSlot={
           <Button
             size="md"
-            className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30"
+            variant="success"
             onClick={openCreateModal}
           >
             Tạo mới
@@ -131,7 +154,7 @@ const GradeItemsAdmin: React.FC = () => {
           title: 'Chưa có hạng mục điểm',
           description: 'Bấm "Tạo mới" để tạo hạng mục điểm đầu tiên.',
           action: (
-            <Button size="sm" onClick={openCreateModal} className="bg-indigo-600 text-white hover:bg-indigo-700">
+            <Button size="md" variant="success" onClick={openCreateModal}>
               Tạo ngay
             </Button>
           ),

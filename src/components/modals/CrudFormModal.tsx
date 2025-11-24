@@ -14,7 +14,7 @@ interface CrudFormModalProps<T extends Record<string, any>> {
   description?: string;
   initialValues: T;
   onClose: () => void;
-  onSubmit: (values: T) => Promise<void> | void;
+  onSubmit: (values: T) => Promise<boolean | void> | boolean | void;
   renderFields: (args: CrudFormModalRenderArgs<T>) => React.ReactNode;
   submitLabel?: string;
   cancelLabel?: string;
@@ -68,12 +68,12 @@ export function CrudFormModal<T extends Record<string, any>>({
     if (submitting) return;
     try {
       setSubmitting(true);
-      await onSubmit(values);
-      if (autoCloseOnSuccess) {
+      const result = await onSubmit(values);
+      if (autoCloseOnSuccess && result !== false) {
         onClose();
+      } else {
       }
     } catch (error) {
-      console.error(error);
     } finally {
       setSubmitting(false);
     }
@@ -83,7 +83,7 @@ export function CrudFormModal<T extends Record<string, any>>({
     <Modal isOpen={isOpen} onClose={() => (submitting ? null : onClose())} className={`${widthClassName} px-6 py-6 sm:px-10`}>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2 text-center sm:text-left">
-          <p className="inline-flex items-center gap-2 rounded-full bg-indigo-50/70 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-100">
+          <p className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400">
             {mode === 'create' ? 'Create' : 'Update'}
           </p>
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{computedTitle}</h2>
@@ -107,7 +107,7 @@ export function CrudFormModal<T extends Record<string, any>>({
           <Button
             type="submit"
             variant="primary"
-            className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30"
+            className="bg-gradient-to-r from-brand-500 to-brand-700 text-white shadow-lg shadow-brand-500/30"
             disabled={submitting}
           >
             {submitting ? 'Đang lưu...' : computedSubmitLabel}

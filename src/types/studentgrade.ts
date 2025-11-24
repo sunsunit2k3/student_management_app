@@ -1,21 +1,21 @@
 // Student grade table
 export interface StudentGradeCreateDto {
-  enrollmentId: string; // UUID
-  gradeItemId: string; // UUID
+  enrollmentId: string; 
+  gradeItemId: string;
   score?: number | null;
   isSubmitted?: boolean;
   submissionDate?: string | null;
 }
 
 export interface StudentGradeUpdateDto {
-  id: string; // UUID
+  id: string; 
   score?: number | null;
   isSubmitted?: boolean;
   feedback?: string | null;
 }
 
 export interface StudentGradeResponseDto {
-  id: string; // UUID
+  id: string; 
   enrollmentId: string;
   gradeItemId: string;
   score?: number | null;

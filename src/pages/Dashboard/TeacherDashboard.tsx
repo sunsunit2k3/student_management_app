@@ -12,12 +12,7 @@ import {
   BarChart3
 } from 'lucide-react';
 
-const stats = [
-  { id: 1, label: "Tổng sinh viên", value: "145", icon: Users, color: "bg-blue-500" },
-  { id: 2, label: "Bài cần chấm", value: "28", icon: FileSignature, color: "bg-orange-500" },
-  { id: 3, label: "Lớp đang dạy", value: "3", icon: BookOpen, color: "bg-purple-500" },
-  { id: 4, label: "Điểm trung bình", value: "7.8", icon: BarChart3, color: "bg-green-500" },
-];
+// dashboard stats are computed below (after mock lists are defined)
 
 const activeClasses = [
   { id: 1, name: "Lập trình Web Nâng cao", code: "CS402", students: 45, progress: 60, image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80" },
@@ -40,6 +35,17 @@ const recentSubmissions = [
   { id: 4, student: "Phạm Minh D", task: "Kiểm tra giữa kỳ", time: "Hôm qua", status: "reviewed" },
 ];
 
+// compute stats from mock data so values remain consistent
+const totalStudents = activeClasses.reduce((sum, c) => sum + (c.students || 0), 0);
+const pendingSubmissionsCount = recentSubmissions.filter((s) => s.status === 'pending').length;
+const classesCount = activeClasses.length;
+const stats = [
+  { id: 1, label: "Tổng sinh viên", value: totalStudents, icon: Users, color: "bg-blue-500" },
+  { id: 2, label: "Bài cần chấm", value: pendingSubmissionsCount, icon: FileSignature, color: "bg-orange-500" },
+  { id: 3, label: "Lớp đang dạy", value: classesCount, icon: BookOpen, color: "bg-purple-500" },
+  { id: 4, label: "Điểm trung bình", value: '-', icon: BarChart3, color: "bg-green-500" },
+];
+
 const TeacherDashboard: React.FC = () => {
   // 1. Lấy user từ useAuthStore
   const user = useAuthStore((state) => state.user);
@@ -57,7 +63,7 @@ const TeacherDashboard: React.FC = () => {
     <div className="min-h-screen w-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300 font-sans">
         
       {/* HEADER / NAVBAR */}
-      <nav className="sticky top-0 z-50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-between items-center">
+      <nav className="sticky top-0 z-9 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-500 flex items-center justify-center text-white shadow-lg">
             <LayoutDashboard size={20} />
@@ -206,7 +212,7 @@ const TeacherDashboard: React.FC = () => {
                   <h3 className="text-lg font-bold flex items-center gap-2 text-gray-800 dark:text-white">
                       <FileSignature size={20} className="text-orange-500" /> Cần chấm điểm
                   </h3>
-                  <span className="bg-orange-100 text-orange-600 text-xs font-bold px-2 py-1 rounded-full">28 mới</span>
+                  <span className="bg-orange-100 text-orange-600 text-xs font-bold px-2 py-1 rounded-full">{pendingSubmissionsCount} mới</span>
                 </div>
                 
                 <div className="space-y-4">

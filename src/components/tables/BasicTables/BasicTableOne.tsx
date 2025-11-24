@@ -118,7 +118,8 @@ export default function BasicTableOne() {
     }
 
     const total = items.length;
-    const start = (page - 1) * size;
+    // `page` is 0-based
+    const start = page * size;
     const paged = items.slice(start, start + size);
     return { items: paged, total };
   }

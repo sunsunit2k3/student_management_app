@@ -16,6 +16,11 @@ export async function getStudentGradesByStudentId(studentId: string): Promise<Ap
 	return apiService.get<StudentGradeResponseDto[]>(`${base}/student/${studentId}`);
 }
 
+export async function getStudentGradesByGradeItemId(gradeItemId: string): Promise<ApiResponse<StudentGradeResponseDto[]>> {
+	return apiService.get<StudentGradeResponseDto[]>(`${base}/grade-item/${gradeItemId}`);
+}
+
+
 export async function getAllGrades(
 	params?: { page?: number; size?: number })
 	: Promise<ApiResponse<PageResponseDto<StudentGradeResponseDto>>> {

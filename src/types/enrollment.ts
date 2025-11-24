@@ -5,11 +5,11 @@ export interface EnrollmentCreateDto {
 }
 
 export interface EnrollmentUpdateDto {
-  id: string; // UUID
+  id: string; 
 }
 
 export interface EnrollmentResponseDto {
-  id: string; // UUID
+  id: string; 
   userId: string;
   userName?: string;
   courseId: string;

@@ -79,7 +79,6 @@ const SubmissionFilesAdmin: React.FC = () => {
             <Button
               size="sm"
               variant="outline"
-              className="rounded-full px-4 py-2 text-xs font-semibold"
               onClick={() => handleDownload(f)}
             >
               Tải xuống
@@ -87,7 +86,6 @@ const SubmissionFilesAdmin: React.FC = () => {
             <Button
               size="sm"
               variant="danger"
-              className="rounded-full px-4 py-2 text-xs font-semibold"
               onClick={() => openDeleteModal(f)}
             >
               Xóa

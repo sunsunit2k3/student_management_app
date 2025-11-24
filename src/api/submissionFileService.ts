@@ -8,8 +8,8 @@ export async function uploadFile(formData: FormData): Promise<ApiResponse<Submis
 	return apiService.post<SubmissionFileResponseDto>(`${base}/upload`, formData);
 }
 
-export async function getFilesByStudentGrade(studentGradeId: string): Promise<ApiResponse<SubmissionFileResponseDto[]>> {
-	return apiService.get<SubmissionFileResponseDto[]>(`${base}/student-grade/${studentGradeId}`);
+export async function getFilesByStudentGrade(studentGradeId: string): Promise<ApiResponse<SubmissionFileResponseDto>> {
+	return apiService.get<SubmissionFileResponseDto>(`${base}/student-grade/${studentGradeId}`);
 }
 
 export async function getAllSubmissionFiles(

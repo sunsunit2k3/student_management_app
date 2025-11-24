@@ -33,7 +33,8 @@ const RolesAdmin: React.FC = () => {
   ];
 
   const fetchData = useCallback(async ({ page, size }: FetchParams) => {
-    const apiPage = Math.max(0, page - 1);
+    // Treat `page` as 0-based from the pagination component
+    const apiPage = Math.max(0, page);
     const res = await getRoles({ page: apiPage, size });
     const list = res.data;
     const items = list?.content || [];
@@ -87,7 +88,7 @@ const RolesAdmin: React.FC = () => {
         toolbarSlot={
           <Button
             size="md"
-            className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30"
+            variant="success"
             onClick={openCreateModal}
           >
             Tạo mới
@@ -97,7 +98,7 @@ const RolesAdmin: React.FC = () => {
           title: 'Chưa có vai trò',
           description: 'Bấm "Tạo mới" để thêm vai trò đầu tiên.',
           action: (
-            <Button size="sm" onClick={openCreateModal} className="bg-indigo-600 text-white hover:bg-indigo-700">
+            <Button size="md" variant="success" onClick={openCreateModal}>
               Tạo ngay
             </Button>
           ),

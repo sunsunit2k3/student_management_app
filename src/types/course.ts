@@ -12,7 +12,7 @@ export interface CourseUpdateDto {
 }
 
 export interface CourseResponseDto {
-  id: string; // UUID
+  id: string; 
   code: string;
   name?: string | null;
   teacherName?: string ;

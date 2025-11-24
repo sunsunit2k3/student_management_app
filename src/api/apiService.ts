@@ -18,6 +18,14 @@ class ApiService {
   }
 
   /** ================= Interceptors ================= */
+  private isAuthEndpoint(url?: string): boolean {
+    if (!url) return false;
+    return url.includes('/auth/login') || 
+           url.includes('/auth/refresh') || 
+           url.includes('/auth/register') ||
+           url.includes('/auth/signin');
+  }
+
   private initializeInterceptors() {
     // REQUEST INTERCEPTOR
     this.api.interceptors.request.use(
@@ -51,6 +59,21 @@ class ApiService {
       async (error) => {
         const originalRequest = error.config;
 
+        // Debug log để xem endpoint nào trả 401
+        if (error.response?.status === 401) {
+          console.log('[ApiService] 401 Unauthorized:', {
+            url: originalRequest?.url,
+            method: originalRequest?.method,
+            response: error.response?.data
+          });
+        }
+
+        // Nếu endpoint auth (login/refresh/register) trả 401 -> không thử refresh, trả lỗi về UI
+        if (error.response?.status === 401 && this.isAuthEndpoint(originalRequest?.url)) {
+          console.log('[ApiService] Auth endpoint returned 401, skipping refresh logic');
+          return Promise.reject(error.response?.data || error);
+        }
+
         // Nếu lỗi 401 (Unauthorized) và chưa từng retry
         if (error.response?.status === 401 && !originalRequest._retry) {
           originalRequest._retry = true;
@@ -62,6 +85,8 @@ class ApiService {
               const newToken = await this.refreshToken();
               this.onRefreshed(newToken);
             } catch (err) {
+              console.log('[ApiService] Refresh token failed:', err);
+              this.onRefreshFailed(err);
               localStorage.removeItem('auth-storage');
               window.dispatchEvent(new CustomEvent('auth:refresh-failed'));
               window.location.href = '/signin'; // Hoặc để Router lo
@@ -93,7 +118,6 @@ class ApiService {
     const { state } = JSON.parse(raw);
     if (!state?.refreshToken) throw new Error('No refresh token found');
 
-    // Gọi API Refresh
     const response = await axios.post(
       `${URL_API}/auth/refresh`,
       { token: state.refreshToken },
@@ -128,6 +152,11 @@ class ApiService {
 
   private onRefreshed(token: string) {
     this.refreshSubscribers.forEach((cb) => cb(token));
+    this.refreshSubscribers = [];
+  }
+
+  private onRefreshFailed(_error: any) {
+    this.refreshSubscribers.forEach((cb) => cb(''));
     this.refreshSubscribers = [];
   }
 

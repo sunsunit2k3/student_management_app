@@ -3,6 +3,7 @@ import {
 	GradeItemCreateDto,
 	GradeItemResponseDto,
 	GradeItemUpdateDto,
+    SubmissionStatusDto,
 } from '../types/gradeitem';
 import apiService from './apiService';
 
@@ -14,6 +15,10 @@ export async function createGradeItem(payload: GradeItemCreateDto): Promise<ApiR
 
 export async function getGradeItemsByCourse(courseId: string): Promise<ApiResponse<GradeItemResponseDto[]>> {
 	return apiService.get<GradeItemResponseDto[]>(`${base}/course/${courseId}`);
+}
+
+export async function getGradeItemById(id: string): Promise<ApiResponse<GradeItemResponseDto>> {
+	return apiService.get<GradeItemResponseDto>(`${base}/${id}`);
 }
 
 export async function getAllGradeItems(): Promise<ApiResponse<GradeItemResponseDto[]>> {
@@ -34,4 +39,8 @@ export async function deleteGradeItem(id: string): Promise<ApiResponse<void>> {
 	return apiService.delete<void>(`${base}/${id}`);
 }
 
-export default { createGradeItem, getAllGradeItems, getGradeItemsByCourse, updateGradeItem, deleteGradeItem };
+export async function getSubmissionStatus(gradeItemId: string): Promise<ApiResponse<SubmissionStatusDto>> {
+    return apiService.get<SubmissionStatusDto>(`${base}/${gradeItemId}/submission-status`);
+}
+
+export default { createGradeItem, getAllGradeItems, getGradeItemsByCourse, getGradeItemById, getSubmissionStatus, updateGradeItem, deleteGradeItem };

@@ -46,7 +46,7 @@ const EnrollmentsAdmin: React.FC = () => {
     { key: 'createdAt', header: 'Created At', sortable: true, render: (e) => (e.createdAt ? new Date(e.createdAt).toLocaleString() : '-') },
   ];
 
-  const fetchData = useCallback(async ({ page, size, query }: FetchParams) => {
+  const fetchData = useCallback(async ({ page = 0, size = 10, query, sortBy, sortOrder }: FetchParams) => {
     const res = await enrollmentService.getAllEnrollments();
     const payload: any = res.data;
     let items: EnrollmentResponseDto[] = [];
@@ -65,10 +65,31 @@ const EnrollmentsAdmin: React.FC = () => {
         (it.userName || it.userId || '').toLowerCase().includes(q) ||
         (it.courseName || it.courseId || '').toLowerCase().includes(q)
       );
-      total = items.length;
     }
 
-    return { items, total };
+    if (sortBy) {
+      const direction = sortOrder === 'desc' ? -1 : 1;
+      items = [...items].sort((a, b) => {
+        const getValue = (record: EnrollmentResponseDto) => {
+          if (sortBy === 'id') return record.id ?? '';
+          if (sortBy === 'createdAt') return record.createdAt ?? '';
+          return '';
+        };
+        const aVal = getValue(a);
+        const bVal = getValue(b);
+        if (aVal < bVal) return -1 * direction;
+        if (aVal > bVal) return 1 * direction;
+        return 0;
+      });
+    }
+
+    total = items.length;
+    const safePage = Math.max(0, page);
+    const safeSize = Math.max(1, size);
+    const start = safePage * safeSize;
+    const paged = items.slice(start, start + safeSize);
+
+    return { items: paged, total };
   }, [refreshTick]);
 
   function openCreateModal() {
@@ -118,7 +139,7 @@ const EnrollmentsAdmin: React.FC = () => {
         toolbarSlot={
           <Button
             size="md"
-            className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30"
+            variant="success"
             onClick={openCreateModal}
           >
             Tạo mới
@@ -128,7 +149,7 @@ const EnrollmentsAdmin: React.FC = () => {
           title: 'Chưa có đăng ký',
           description: 'Bấm "Tạo mới" để thêm đăng ký đầu tiên.',
           action: (
-            <Button size="sm" onClick={openCreateModal} className="bg-indigo-600 text-white hover:bg-indigo-700">
+            <Button size="md" variant="success" onClick={openCreateModal}>
               Tạo ngay
             </Button>
           ),

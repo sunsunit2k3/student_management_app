@@ -123,7 +123,7 @@ const StudentGradesAdmin: React.FC = () => {
         toolbarSlot={
           <Button
             size="md"
-            className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30"
+            variant="success"
             onClick={openCreateModal}
           >
             Tạo mới
@@ -133,7 +133,7 @@ const StudentGradesAdmin: React.FC = () => {
           title: 'Chưa có điểm',
           description: 'Bấm "Tạo mới" để thêm điểm đầu tiên.',
           action: (
-            <Button size="sm" onClick={openCreateModal} className="bg-indigo-600 text-white hover:bg-indigo-700">
+            <Button size="md" variant="success" onClick={openCreateModal}>
               Tạo ngay
             </Button>
           ),

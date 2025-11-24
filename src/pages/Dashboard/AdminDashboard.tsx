@@ -4,6 +4,7 @@ import { getAllUsers } from "../../api/userService";
 import { getRoles } from "../../api/rolesService";
 import { getCourses } from "../../api/coursesService";
 import apiService from "../../api/apiService";
+import Button from "../../components/ui/button/Button";
 
 import StatCard from "../../components/ui/card/StatCard";
 import { motion } from "framer-motion";
@@ -64,57 +65,59 @@ const AdminDashboard: React.FC = () => {
 
   const [, setLoading] = useState(false);
 
-  useEffect(() => {
-    let mounted = true;
+  // useRef to guard setState after unmount
+  const isMountedRef = React.useRef(true);
 
-    async function fetchCounts() {
-      setLoading(true);
-      try {
-        const requests = [
-          getAllUsers({ page: 0, size: 1 }),
-          getRoles({ page: 0, size: 1 }),
-          getCourses({ page: 0, size: 1 }),
-          apiService.get("/enrollments", { params: { page: 0, size: 1 }, skipLoading: true } as any),
-          apiService.get("/grade-items", { params: { page: 0, size: 1 }, skipLoading: true } as any),
-          apiService.get("/student-grades", { params: { page: 0, size: 1 }, skipLoading: true } as any),
-          apiService.get("/submission-files", { params: { page: 0, size: 1 }, skipLoading: true } as any),
-        ];
+  const fetchCounts = async () => {
+    setLoading(true);
+    try {
+      const requests = [
+        getAllUsers({ page: 0, size: 1 }),
+        getRoles({ page: 0, size: 1 }),
+        getCourses({ page: 0, size: 1 }),
+        apiService.get("/enrollments", { params: { page: 0, size: 1 }, skipLoading: true } as any),
+        apiService.get("/grade-items", { params: { page: 0, size: 1 }, skipLoading: true } as any),
+        apiService.get("/student-grades", { params: { page: 0, size: 1 }, skipLoading: true } as any),
+        apiService.get("/submission-files", { params: { page: 0, size: 1 }, skipLoading: true } as any),
+      ];
 
-        const results = await Promise.allSettled(requests);
+      const results = await Promise.allSettled(requests);
 
-        if (!mounted) return;
+      if (!isMountedRef.current) return;
 
-        const next: CountState = { ...counts };
+      const next: CountState = { ...counts };
 
-        const extractTotal = (res: any) => {
-          try {
-            if (res && res.data && typeof res.data.totalElements === "number") return res.data.totalElements;
-            if (Array.isArray(res?.data)) return res.data.length;
-            return null;
-          } catch {
-            return null;
-          }
-        };
+      const extractTotal = (res: any) => {
+        try {
+          if (res && res.data && typeof res.data.totalElements === "number") return res.data.totalElements;
+          if (Array.isArray(res?.data)) return res.data.length;
+          return null;
+        } catch {
+          return null;
+        }
+      };
 
-        next.users = results[0].status === "fulfilled" ? extractTotal((results[0] as any).value) : null;
-        next.roles = results[1].status === "fulfilled" ? extractTotal((results[1] as any).value) : null;
-        next.courses = results[2].status === "fulfilled" ? extractTotal((results[2] as any).value) : null;
-        next.enrollments = results[3].status === "fulfilled" ? extractTotal((results[3] as any).value) : null;
-        next.gradeItems = results[4].status === "fulfilled" ? extractTotal((results[4] as any).value) : null;
-        next.studentGrades = results[5].status === "fulfilled" ? extractTotal((results[5] as any).value) : null;
-        next.submissionFiles = results[6].status === "fulfilled" ? extractTotal((results[6] as any).value) : null;
+      next.users = results[0].status === "fulfilled" ? extractTotal((results[0] as any).value) : null;
+      next.roles = results[1].status === "fulfilled" ? extractTotal((results[1] as any).value) : null;
+      next.courses = results[2].status === "fulfilled" ? extractTotal((results[2] as any).value) : null;
+      next.enrollments = results[3].status === "fulfilled" ? extractTotal((results[3] as any).value) : null;
+      next.gradeItems = results[4].status === "fulfilled" ? extractTotal((results[4] as any).value) : null;
+      next.studentGrades = results[5].status === "fulfilled" ? extractTotal((results[5] as any).value) : null;
+      next.submissionFiles = results[6].status === "fulfilled" ? extractTotal((results[6] as any).value) : null;
 
-        setCounts(next);
-      } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu Dashboard", error);
-      } finally {
-        if (mounted) setLoading(false);
-      }
+      setCounts(next);
+    } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu Dashboard", error);
+    } finally {
+      if (isMountedRef.current) setLoading(false);
     }
+  };
 
+  useEffect(() => {
+    isMountedRef.current = true;
     fetchCounts();
     return () => {
-      mounted = false;
+      isMountedRef.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -311,7 +314,14 @@ const AdminDashboard: React.FC = () => {
             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-slate-800 dark:text-white">Hoạt động gần đây</h3>
-                <button className="text-brand-600 dark:text-brand-400 text-xs font-medium hover:underline">Làm mới</button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs font-medium"
+                  onClick={() => fetchCounts()}
+                >
+                  Làm mới
+                </Button>
               </div>
 
               <ul className="space-y-4">

@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { X, FileText, Upload, CheckCircle, Loader2, FileCheck } from 'lucide-react';
+import { X, FileText, Upload, CheckCircle, Loader2, FileCheck, Trash2 } from 'lucide-react';
 import { GradeItemResponseDto } from '../../types/gradeitem';
-import {    StudentGradeResponseDto   } from '../../types/studentgrade';
+import { StudentGradeResponseDto } from '../../types/studentgrade';
+import { getFilesByStudentGrade, deleteSubmissionFile } from '../../api/submissionFileService';
+import { SubmissionFileResponseDto } from '../../types/submissionfile';
+import { toast } from 'react-toastify';
+import DeleteConfirmModal from './DeleteConfirmModal';
 
 interface SubmissionModalProps {
   isOpen: boolean;
   selectedItem: GradeItemResponseDto | null;
   myGrade?: StudentGradeResponseDto;
   onClose: () => void;
-  onSubmit: (file: File) => Promise<void>;
+  onSubmit: (file: File) => Promise<string | void>;
 }
 
 const SubmissionModal: React.FC<SubmissionModalProps> = ({
@@ -21,7 +25,21 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [submissionFiles, setSubmissionFiles] = useState<SubmissionFileResponseDto | null>(null);
+  const [loadingFiles, setLoadingFiles] = useState(false);
+  const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState<SubmissionFileResponseDto | null>(null);
 
+  // Determine if the assignment is past due
+  const isPastDue = React.useMemo(() => {
+    if (!selectedItem?.dueDate) return false;
+    try {
+      return new Date(selectedItem.dueDate).getTime() < Date.now();
+    } catch (e) {
+      return false;
+    }
+  }, [selectedItem?.dueDate]);
   useEffect(() => {
     if (isOpen) {
       setSelectedFile(null);
@@ -29,6 +47,28 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
       setIsUploading(false);
     }
   }, [isOpen, selectedItem]);
+
+  // Load submission files when modal opens or myGrade changes
+  useEffect(() => {
+    const loadFiles = async () => {
+      if (!isOpen || !myGrade?.id) {
+        setSubmissionFiles(null);
+        return;
+      }
+      setLoadingFiles(true);
+      try {
+        const res = await getFilesByStudentGrade(myGrade.id);
+        const file = (res as any)?.data || res;
+        setSubmissionFiles(file || null);
+      } catch (err) {
+        console.error('Failed to load submission files', err);
+      } finally {
+        setLoadingFiles(false);
+      }
+    };
+
+    loadFiles();
+  }, [isOpen, myGrade?.id]);
 
   if (!isOpen || !selectedItem) return null;
 
@@ -43,12 +83,57 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
 
     setIsUploading(true);
     try {
-      await onSubmit(selectedFile);
+      // onSubmit may return the studentGradeId (if implemented)
+      const result: any = await onSubmit(selectedFile as File);
       setUploadSuccess(true);
+
+      // If we have a studentGradeId from result or myGrade, refresh files
+      const studentGradeId = result || myGrade?.id;
+      if (studentGradeId) {
+        setLoadingFiles(true);
+        try {
+          const res = await getFilesByStudentGrade(studentGradeId);
+          const file = (res as any)?.data || res;
+          setSubmissionFiles(file || null);
+        } catch (err) {
+          console.error('Failed to refresh files after upload', err);
+        } finally {
+          setLoadingFiles(false);
+        }
+      }
     } catch (error) {
-      console.error("Upload failed", error);
+      console.error('Upload failed', error);
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleDeleteFile = (file: SubmissionFileResponseDto) => {
+    setFileToDelete(file);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!fileToDelete) return;
+    const fileId = fileToDelete.id;
+    setDeletingFileId(fileId);
+    setDeleteModalOpen(false);
+    setFileToDelete(null);
+    
+    try {
+      await deleteSubmissionFile(fileId);
+      toast.success('Xóa file thành công');
+      // refresh
+      if (myGrade?.id) {
+        const res = await getFilesByStudentGrade(myGrade.id);
+        const file = (res as any)?.data || res;
+        setSubmissionFiles(file || null);
+      }
+    } catch (err) {
+      console.error('Failed to delete file', err);
+      toast.error('Xóa file thất bại');
+    } finally {
+      setDeletingFileId(null);
     }
   };
 
@@ -65,6 +150,15 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
 
   const isSubmitted = myGrade?.isSubmitted;
   const score = myGrade?.score;
+
+  const buildFileUrl = (path?: string) => {
+    if (!path) return '#';
+    // If it's already an absolute URL, return as-is
+    if (/^https?:\/\//i.test(path)) return path;
+    // Otherwise, prefix with localhost:8080
+    const prefix = 'http://localhost:8080';
+    return `${prefix}${path.startsWith('/') ? '' : '/'}${path}`;
+  };
 
   return (
     <div className="fixed inset-0 z-999 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -86,13 +180,18 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
         {/* Body */}
         <div className="p-6 space-y-6 overflow-y-auto custom-scrollbar">
           <div className="space-y-3 text-sm">
+             {isPastDue && (
+               <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 font-medium">
+                 Hạn nộp đã qua. Bạn không thể nộp hoặc thay đổi tệp.
+               </div>
+             )}
              <div className="flex justify-between">
-                <span className="text-gray-500">Hạn nộp:</span>
-                <span className="font-medium text-gray-900 dark:text-white">{formatDate(selectedItem.dueDate)}</span>
+               <span className="text-gray-500">Hạn nộp:</span>
+               <span className="font-medium text-gray-900 dark:text-white">{formatDate(selectedItem.dueDate)}</span>
              </div>
              <div className="flex justify-between">
-                <span className="text-gray-500">Trọng số:</span>
-                <span className="font-bold text-blue-600">{selectedItem.weight}%</span>
+               <span className="text-gray-500">Trọng số:</span>
+               <span className="font-bold text-brand-600">{selectedItem.weight}%</span>
              </div>
              
              {score !== null && score !== undefined && (
@@ -122,43 +221,71 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
                     </span>
                 )}
             </div>
-            
             {!uploadSuccess ? (
-              <div className={`relative border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center transition-all duration-200 group ${
-                selectedFile 
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                  : 'border-gray-300 hover:border-blue-400 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'
-              }`}>
-                <input 
-                  type="file" 
-                  onChange={handleFileChange}
-                  disabled={isUploading}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
-                />
-                
-                {selectedFile ? (
-                  <>
-                    <FileText size={40} className="text-blue-600 mb-2 animate-in zoom-in duration-300" />
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[200px]">
-                      {selectedFile.name}
-                    </p>
-                    <p className="text-xs text-gray-500 mb-2">
-                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                    <span className="text-xs text-blue-600 font-medium hover:underline relative z-20">
-                      Nhấn để thay đổi file
-                    </span>
-                  </>
+              <div className="space-y-4">
+                {loadingFiles ? (
+                  <div className="text-sm text-gray-500">Đang tải file...</div>
+                ) : submissionFiles ? (
+                  <div className="space-y-2">
+                    <div key={submissionFiles.id} className="flex items-center justify-between bg-gray-50 dark:bg-gray-900/30 p-3 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <FileText size={20} className="text-gray-500" />
+                        <div className="text-sm">
+                          <a href={buildFileUrl(submissionFiles.filePath)} target="_blank" rel="noreferrer" className="font-medium hover:underline text-gray-900 dark:text-white">
+                            {submissionFiles.originalFileName || submissionFiles.filePath}
+                          </a>
+                          <div className="text-xs text-gray-500">{submissionFiles.fileSize ? `${(submissionFiles.fileSize/1024/1024).toFixed(2)} MB` : ''} {submissionFiles.uploadDate ? `• ${new Date(submissionFiles.uploadDate).toLocaleString('vi-VN')}` : ''}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleDeleteFile(submissionFiles)}
+                          disabled={!!deletingFileId || isPastDue}
+                          className="p-2 rounded-md text-red-600 hover:bg-red-50 disabled:opacity-50"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 ) : (
-                  <>
-                    <Upload size={32} className="text-gray-400 mb-2 group-hover:scale-110 transition-transform duration-300" />
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      Kéo thả hoặc nhấn để chọn file
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      PDF, Word, Excel, ZIP (Tối đa 10MB)
-                    </p>
-                  </>
+                  <div className={`relative border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center transition-all duration-200 group ${
+                    selectedFile 
+                      ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20' 
+                      : 'border-gray-300 hover:border-brand-400 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'
+                  }`}>
+                    <input 
+                      type="file" 
+                      onChange={handleFileChange}
+                      disabled={isUploading || isPastDue}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
+                    />
+                    
+                    {selectedFile ? (
+                      <>
+                        <FileText size={40} className="text-brand-600 mb-2 animate-in zoom-in duration-300" />
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[200px]">
+                          {selectedFile.name}
+                        </p>
+                        <p className="text-xs text-gray-500 mb-2">
+                          {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                        <span className="text-xs text-brand-600 font-medium hover:underline relative z-20">
+                          Nhấn để thay đổi file
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload size={32} className="text-gray-400 mb-2 group-hover:scale-110 transition-transform duration-300" />
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          Kéo thả hoặc nhấn để chọn file
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          PDF, Word, Excel, ZIP (Tối đa 10MB)
+                        </p>
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
             ) : (
@@ -178,11 +305,13 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
           <div className="p-6 pt-0 bg-white dark:bg-gray-800">
             <button
               onClick={handleSubmit}
-              disabled={!selectedFile || isUploading}
+              disabled={!selectedFile || isUploading || isPastDue}
               className={`w-full py-3 px-4 rounded-xl flex items-center justify-center gap-2 font-bold transition-all duration-200 ${
                 !selectedFile || isUploading
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-700'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/30 transform active:scale-95'
+                  : isPastDue
+                    ? 'bg-red-100 text-red-400 cursor-not-allowed dark:bg-red-900'
+                  : 'bg-brand-600 hover:bg-brand-700 text-white shadow-lg hover:shadow-brand-500/30 transform active:scale-95'
               }`}
             >
               {isUploading ? (
@@ -193,13 +322,25 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
               ) : (
                 <>
                   <Upload size={20} />
-                  {isSubmitted ? 'Nộp lại bài' : 'Nộp bài ngay'}
+                  {isPastDue ? 'Quá hạn' : (isSubmitted ? 'Nộp lại bài' : 'Nộp bài ngay')}
                 </>
               )}
             </button>
           </div>
         )}
       </div>
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        title="Xác nhận xóa"
+        entityName={fileToDelete?.originalFileName || ''}
+        description={`Bạn có chắc muốn xóa tệp ${fileToDelete?.originalFileName || ''}?`}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setFileToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        isProcessing={!!deletingFileId}
+      />
     </div>
   );
 };
