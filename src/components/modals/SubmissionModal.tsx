@@ -155,8 +155,8 @@ const SubmissionModal: React.FC<SubmissionModalProps> = ({
     if (!path) return '#';
     // If it's already an absolute URL, return as-is
     if (/^https?:\/\//i.test(path)) return path;
-    // Otherwise, prefix with localhost:8080
-    const prefix = 'http://localhost:8080';
+    // Use the new API endpoint
+    const prefix = 'http://localhost:8080/v1/api';
     return `${prefix}${path.startsWith('/') ? '' : '/'}${path}`;
   };
 

@@ -55,7 +55,12 @@ const SubmissionFilesAdmin: React.FC = () => {
   }
 
   function handleDownload(f: SubmissionFileResponseDto) {
-    if (f.filePath) window.open(f.filePath, "_blank");
+    if (f.filePath) {
+      const fileUrl = f.filePath.startsWith('http')
+        ? f.filePath
+        : `http://localhost:8080/v1/api${f.filePath.startsWith('/') ? '' : '/'}${f.filePath}`;
+      window.open(fileUrl, "_blank");
+    }
   }
 
   return (

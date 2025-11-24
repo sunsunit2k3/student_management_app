@@ -196,7 +196,7 @@ const GradingModal: React.FC<Props> = ({ isOpen, onClose, student, gradeItems, i
                                                     const rawPath = file.filePath || '';
                                                     const fileUrl = rawPath.startsWith('http')
                                                         ? rawPath
-                                                        : `http://localhost:8080${rawPath.startsWith('/') ? '' : '/'}${rawPath}`;
+                                                        : `http://localhost:8080/v1/api${rawPath.startsWith('/') ? '' : '/'}${rawPath}`;
 
                                                     return (
                                                         <a
